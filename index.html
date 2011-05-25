@@ -1,0 +1,75 @@
+<html>
+    <head>
+        <meta charset="utf-8">
+        <title>A Real Page Turner!</title>
+        <style>
+        #canvas {
+            background: blue;
+        }
+        </style>
+    </head>
+
+    <body>
+        <p id ="debug"></p>
+        <canvas id="canvas" width="600" height="400"></canvas>
+    </body>
+</html>
+
+<script>
+
+    // shim layer with setTimeout fallback
+    window.requestAnimFrame = (function(){
+      return  window.requestAnimationFrame       || 
+              window.webkitRequestAnimationFrame || 
+              window.mozRequestAnimationFrame    || 
+              window.oRequestAnimationFrame      || 
+              window.msRequestAnimationFrame     || 
+              function(/* function */ callback, /* DOMElement */ element){
+                window.setTimeout(callback, 1000 / 60);
+              };
+    })();
+
+    (function init() {
+        var canvas = document.getElementById('canvas');
+        this.height = canvas.height;
+        this.width = canvas.width;
+        var ctx = window.ctx = canvas.getContext('2d');
+        var buffer = document.createElement('canvas');
+        buffer.width = canvas.width;
+        buffer.height = canvas.height;
+        var bufferCtx = buffer.getContext('2d');
+        var debug = document.getElementById('debug');
+ 
+        this.p0 = { x: this.width, y: this.height };
+        this.p = { x: this.width, y: this.height };
+        var that = this;
+        
+        this.mouseMoved = false;
+        canvas.addEventListener("mousemove", function (e) {
+            if (that.mouseMoved)
+                return;
+            var bound = canvas.getBoundingClientRect(); 
+            that.p = { x: e.x - bound.left, y: e.y - bound.top };
+            that.mouseMoved = true;
+        });
+        
+        (function loop() {
+            if (that.mouseMoved) {
+                ctx.save();
+                that.mouseMoved = false;
+                ctx.clearRect(0, 0, that.width, that.height);
+                ctx.fillStyle = "yellow";
+                ctx.beginPath();
+                ctx.moveTo(0, that.height);
+                ctx.quadraticCurveTo(that.p.x, that.height, that.p.x, that.p.y);
+                ctx.quadraticCurveTo(that.width, that.p.y, that.width, 0);
+                ctx.lineTo(that.width, that.height);
+                ctx.lineTo(0, that.height);
+                ctx.fill();
+                ctx.restore();
+                debug.innerHTML = "p.x: " + that.p.x + " p.y: " + that.p.y;
+            }
+            requestAnimFrame(loop, canvas);
+        })();
+    })();
+</script>
